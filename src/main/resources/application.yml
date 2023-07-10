@@ -1,0 +1,58 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:testdb
+    username: sa
+    password: password
+    driverclass: org.h2.Driver
+  jpa:
+    show-sql: false
+    spring:
+      jpa:
+        database-platform: org.hibernate.dialect.H2Dialect
+    properties:
+      hibernate:
+        format_sql: false
+    hibernate:
+      ddl-auto: update
+  h2:
+    console.enabled: true
+  profiles:
+    active: dev
+  main:
+    banner-mode: off
+  servlet:
+    multipart:
+      max-file-size: 10KB
+      max-request-size: 10KB
+  thymeleaf:
+    cache: false
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            clientId: 623936909151-g27dill2s7s4r72hthiraa4c88535f7d.apps.googleusercontent.com
+            clientSecret: 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
+logging:
+  level:
+    org:
+      springframework: INFO
+server:
+  shutdown: graceful
+---
+spring:
+  config:
+    activate:
+      on-profile: dev
+server:
+  port: 8080
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+server:
+  port: 8082
