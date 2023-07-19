@@ -1,103 +1,111 @@
 package com.example.employee.controller;
 
+import com.example.employee.dto.EmployeeDto;
 import com.example.employee.dto.Post;
 import com.example.employee.model.Employee;
 import com.example.employee.restClient.GetToDoListRestTemplate;
 import com.example.employee.service.EmployeeService;
 import com.example.employee.utilities.EntityModelAssembler;
 import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.v3.oas.annotations.Hidden;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.cache.CacheManager;
-import org.springframework.cache.annotation.Cacheable;
-import org.springframework.hateoas.CollectionModel;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.hateoas.EntityModel;
-import org.springframework.hateoas.IanaLinkRelations;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import springfox.documentation.annotations.ApiIgnore;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
-import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
-import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
-
+/**
+ * The type Employee rest controller.
+ */
 @RestController
-@RequestMapping("/rest/v1")
+@RequestMapping("/employees")
 @Api(tags = {"Employee Controller"}, value = "Employee Controller")
+@RequiredArgsConstructor
+@Slf4j
 public class EmployeeRestController {
 
-    private EmployeeService employeeService;
-    private CacheManager cacheManager;
-    private EntityModelAssembler entityModelAssembler;
+    private final EmployeeService employeeService;
+    private final EntityModelAssembler entityModelAssembler;
+    private final GetToDoListRestTemplate getToDoListRestTemplate;
 
-    private GetToDoListRestTemplate getToDoListRestTemplate;
-
-    public EmployeeRestController(@Qualifier("emp") EmployeeService employeeService, CacheManager cacheManager, EntityModelAssembler entityModelAssembler, GetToDoListRestTemplate getToDoListRestTemplate) {
-        this.employeeService = employeeService;
-        this.cacheManager = cacheManager;
-        this.entityModelAssembler = entityModelAssembler;
-        this.getToDoListRestTemplate = getToDoListRestTemplate;
+    /**
+     * Gets employee details.
+     *
+     * @param pageNo   the page no
+     * @param pageSize the page size
+     * @param sortBy   the sort by
+     * @return the employee details
+     */
+    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<List<EmployeeDto>> getEmployeeDetails(@RequestParam(value = "pageNo", required = false, defaultValue = "0") final int pageNo,
+                                                                @RequestParam(value = "pageSize", required = false, defaultValue = "10") final int pageSize,
+                                                                @RequestParam(value = "sortBy", required = false, defaultValue = "firstName") final String sortBy) {
+        List<EmployeeDto> entityModelList = employeeService.getAllEmployees(pageNo, pageSize, sortBy);
+        return ResponseEntity.ok(entityModelList);
     }
 
-    @GetMapping(value = "/allEmployee", produces = MediaType.APPLICATION_JSON_VALUE)
-    @Cacheable("employeeCache")
-    public ResponseEntity<CollectionModel<EntityModel<Employee>>> getEmployeeDetails(){
-        cacheManager.getCacheNames().stream().forEach(cache-> System.out.println("********* "+cache));
-        List<EntityModel<Employee>> entityModelList = employeeService.getAllEmployees().stream().map(entityModelAssembler::toModel).collect(Collectors.toList());
-        return ResponseEntity.ok(CollectionModel.of(entityModelList,linkTo(methodOn(EmployeeRestController.class).getEmployeeDetails()).withSelfRel()));
-    }
-
-    @GetMapping(value = "/getEmployeeById/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<EntityModel<Employee>> getEmployeeById(@PathVariable("id") long id){
+    /**
+     * Gets employee by id.
+     *
+     * @param id the id
+     * @return the employee by id
+     */
+    @GetMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<EntityModel<Employee>> getEmployeeById(@PathVariable("id") final Long id) {
         Employee employee = employeeService.findEmployeeById(id);
         return ResponseEntity.ok(entityModelAssembler.toModel(employee));
     }
 
-    @GetMapping(value = "/findEmployeeByFirstName/{firstName}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<CollectionModel<EntityModel<Employee>>> findEmployeeByFirstName(@PathVariable("firstName") String firstName){
-        List<EntityModel<Employee>> entityModelList = employeeService.findEmployeeByFirstName(firstName).stream().map(entityModelAssembler::toModel).collect(Collectors.toList());
-        return ResponseEntity.ok(CollectionModel.of(entityModelList,linkTo(methodOn(EmployeeRestController.class).getEmployeeDetails()).withSelfRel()));
-    }
-
-    @PostMapping(value = "/saveEmployeeDetails", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<EntityModel<Employee>> saveEmployeeDetails(@RequestBody Employee employee){
-        EntityModel<Employee> employeeEntityModel = entityModelAssembler.toModel(employeeService.saveEmployeeDetails(employee));
-        return ResponseEntity.created(employeeEntityModel.getRequiredLink(IanaLinkRelations.SELF).toUri()).body(employeeEntityModel);
-    }
-
-    @PostMapping(value = "/saveEmployeeDetailsJsonRequestBody", consumes = MediaType.APPLICATION_JSON_VALUE)
-    @ApiOperation(value = "",hidden = true)
-    public ResponseEntity<String> saveEmployeeDetailsJsonRequestBody(@RequestBody Employee employee){
-        employeeService.saveEmployeeDetails(employee);
-        return new ResponseEntity<>("Record Created!!",HttpStatus.CREATED);
-    }
-
-    @PostMapping(value = "/saveAllEmployees", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<String> saveAllEmployees(@RequestBody Employee[] employees){
+    /**
+     * Save all employees response entity.
+     *
+     * @param employees the employees
+     * @return the response entity
+     */
+    @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<String> saveAllEmployees(@RequestBody Employee[] employees) {
         employeeService.saveAllEmployeeDetails(Arrays.asList(employees));
-        return new ResponseEntity<>("Record Created!!",HttpStatus.CREATED);
+        return new ResponseEntity<>("Record Created!!", HttpStatus.CREATED);
     }
 
-    @PutMapping(value = "/updateEmployee/{id}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<EntityModel<Employee>> updateEmployeeDetails(@RequestBody Employee employee, @PathVariable("id") long id){
-        EntityModel<Employee> entityModel = entityModelAssembler.toModel(employeeService.updateEmployeeDetails(employee,id));
-        return ResponseEntity.created(entityModel.getRequiredLink(IanaLinkRelations.SELF).toUri()).body(entityModel);
+    /**
+     * Update employee details response entity.
+     *
+     * @param employee the employee
+     * @param id       the id
+     * @return the response entity
+     */
+    @PutMapping(value = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<EntityModel<Employee>> updateEmployeeDetails(@RequestBody Employee employee, @PathVariable("id") final Long id) {
+        EntityModel<Employee> entityModel = entityModelAssembler.toModel(employeeService.updateEmployeeDetails(employee, id));
+        return ResponseEntity.ok(entityModel);
     }
 
-    @DeleteMapping(value = "/deleteEmployee/{id}")
-    public ResponseEntity<?> deleteEmployee(@PathVariable("id") long id){
+    /**
+     * Delete employee response entity.
+     *
+     * @param id the id
+     * @return the response entity
+     */
+    @DeleteMapping(value = "/{id}")
+    public ResponseEntity<String> deleteEmployee(@PathVariable("id") final Long id) {
         employeeService.removeEmployeeDetails(id);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok("Record Removed");
     }
 
+    /**
+     * Get posts list.
+     *
+     * @return the list
+     */
     @GetMapping("/posts")
-    public List<Post> getPosts(){
-        List<Post> postList = getToDoListRestTemplate.getPosts();
-        return postList;
+    @ApiIgnore
+    public List<Post> getPosts() {
+        return getToDoListRestTemplate.getPosts();
     }
 }

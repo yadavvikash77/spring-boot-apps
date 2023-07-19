@@ -1,32 +1,36 @@
 package com.example.employee.model;
 
+import com.example.employee.enumConstant.Gender;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
+import java.util.List;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 @Entity(name = "Employee")
 public class Employee {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @JsonIgnore
-    private long Id;
+    @Column(name = "emp_id")
+    private Long id;
 
     @Column(name = "firstname", nullable = false)
     @NotBlank(message = "{validation.property.firstname.notblank}")
-    /*@Pattern(regexp = "^[a-zA-Z]+$", message = "{validation.property.firstname.pattern}")*/
     private String firstName;
 
     @Column(name = "lastname", nullable = false)
     @NotBlank(message = "{validation.property.lastname.notblank}")
-    /*@Pattern(regexp = "^[a-zA-Z]+$", message = "{validation.property.lastname.pattern}")*/
     private String lastName;
 
     @Column(name = "email", nullable = false)
@@ -35,10 +39,15 @@ public class Employee {
     private String email;
 
     @Column(name = "gender", nullable = false)
-    @NotBlank(message = "{validation.property.gender.notblank}")
-    private String gender;
+    @Enumerated(EnumType.STRING)
+    private Gender gender;
 
     @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "address_id",referencedColumnName = "id")
+    @JoinColumn(name = "fk_address_id", referencedColumnName = "address_id")
     private Address address;
+
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JoinColumn(name = "fk_emp_id", referencedColumnName = "emp_id")
+    private List<Post> posts;
+
 }

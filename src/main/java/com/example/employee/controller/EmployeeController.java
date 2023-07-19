@@ -1,9 +1,12 @@
+/*
 package com.example.employee.controller;
 
 import com.example.employee.enumConstant.Gender;
 import com.example.employee.model.Employee;
 import com.example.employee.properties.PropertySourceConfig;
 import com.example.employee.service.EmployeeService;
+import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
@@ -19,14 +22,11 @@ import java.util.Optional;
 @Controller
 @CrossOrigin(origins = "*")
 @ApiIgnore
+@RequiredArgsConstructor
 public class EmployeeController {
-    private EmployeeService employeeService;
+    private final EmployeeService employeeService;
     private PropertySourceConfig propertySourceConfig;
 
-    public EmployeeController(@Qualifier("emp") EmployeeService employeeService, PropertySourceConfig propertySourceConfig) {
-        this.employeeService = employeeService;
-        this.propertySourceConfig = propertySourceConfig;
-    }
     @GetMapping("/login")
     public String login(){
         return "login";
@@ -89,3 +89,4 @@ public class EmployeeController {
        return "searchEmployee";
     }
 }
+*/

@@ -1,8 +1,7 @@
 package com.example.employee.scheduler;
 
-import com.example.employee.model.Employee;
+import com.example.employee.dto.EmployeeDto;
 import com.example.employee.service.EmployeeService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -23,7 +22,7 @@ public class DataTransitionTask {
 
     @Scheduled(cron = "0 29 21 ? * * ")
     public void transitionTask() throws IOException {
-        List<Employee> employeeList= employeeService.getAllEmployees();
+        List<EmployeeDto> employeeList= employeeService.getAllEmployees(0,10,"firstName");
         if (!employeeList.isEmpty()){
             Path filePath = Path.of("emp.txt");
             try(FileWriter fileWriter = new FileWriter(filePath.toFile())){

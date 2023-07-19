@@ -28,33 +28,34 @@ public class SecurityConfig {
         httpSecurity
                 .csrf().disable()
                 .authorizeHttpRequests((requests) -> requests
-                        .antMatchers("/rest/v1/**",
+                        .antMatchers("/employees/**",
                                 "/login",
                                 "/logout",
                                 "/webjars/bootstrap/**",
                                 "/css/**",
                                 "/swagger-resources/**",
                                 "/swagger-ui/**",
-                                "/v3/api-docs")
+                                "/v3/api-docs",
+                                "/h2-console")
                         .permitAll()
                         .antMatchers("/showUpdateEmployeeForm/**").hasRole("ADMIN")
                         .anyRequest().hasRole("USER")
                 )
-                .formLogin(form->form
+                .formLogin(form -> form
                         .loginPage("/login")
-                        .defaultSuccessUrl("/",true)
+                        .defaultSuccessUrl("/", true)
                         .failureUrl("/login?error")
                         .permitAll()
                 )
                 .logout(httpSecurityLogoutConfigurer -> httpSecurityLogoutConfigurer
-                                .clearAuthentication(true)
-                                .logoutUrl("/logout")
+                        .clearAuthentication(true)
+                        .logoutUrl("/logout")
                 );
         return httpSecurity.build();
     }
 
     @Bean
-    public UserDetailsService userDetailsService(){
+    public UserDetailsService userDetailsService() {
         PasswordEncoder passwordEncoder = PasswordEncoderFactories.createDelegatingPasswordEncoder();
         UserDetails user = User.builder()
                 .username("user")
@@ -69,7 +70,6 @@ public class SecurityConfig {
         JdbcUserDetailsManager jdbcUserDetailsManager = new JdbcUserDetailsManager(dataSource);
         jdbcUserDetailsManager.createUser(user);
         jdbcUserDetailsManager.createUser(admin);
-        /*return new InMemoryUserDetailsManager(user, admin);*/
         return jdbcUserDetailsManager;
     }
 }

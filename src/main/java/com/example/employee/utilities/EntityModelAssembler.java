@@ -13,7 +13,6 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 public class EntityModelAssembler implements RepresentationModelAssembler<Employee, EntityModel<Employee>> {
     @Override
     public EntityModel<Employee> toModel(Employee employee) {
-        return EntityModel.of(employee,linkTo(methodOn(EmployeeRestController.class).getEmployeeById(employee.getId())).withSelfRel(),
-                linkTo(methodOn(EmployeeRestController.class).getEmployeeDetails()).withRel("employees"));
+        return EntityModel.of(employee,linkTo(methodOn(EmployeeRestController.class).getEmployeeById(employee.getId())).withSelfRel());
     }
 }
