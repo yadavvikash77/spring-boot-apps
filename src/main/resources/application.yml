@@ -29,13 +29,6 @@ spring:
   mvc:
     pathmatch:
       matching-strategy: ant_path_matcher
-  security:
-    oauth2:
-      client:
-        registration:
-          google:
-            clientId: 623936909151-g27dill2s7s4r72hthiraa4c88535f7d.apps.googleusercontent.com
-            clientSecret: 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
 logging:
   level:
     org:
