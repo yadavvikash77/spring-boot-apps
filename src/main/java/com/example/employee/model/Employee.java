@@ -1,5 +1,6 @@
 package com.example.employee.model;
 
+import com.example.employee.entityListener.EmployeeEntityListener;
 import com.example.employee.enumConstant.Gender;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
@@ -17,7 +18,8 @@ import java.util.List;
 @NoArgsConstructor
 @Builder
 @Entity(name = "Employee")
-public class Employee {
+@EntityListeners(EmployeeEntityListener.class)
+public class Employee extends ParentModel {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -50,4 +52,11 @@ public class Employee {
     @JoinColumn(name = "fk_emp_id", referencedColumnName = "emp_id")
     private List<Post> posts;
 
+    @Embedded
+    @AttributeOverrides(value = {
+            @AttributeOverride(name = "name", column = @Column(name = "company_name", nullable = false)),
+            @AttributeOverride(name = "address", column = @Column(name = "company_address", nullable = false)),
+            @AttributeOverride(name = "type", column = @Column(name = "company_type", nullable = false))
+    })
+    private Company company;
 }
